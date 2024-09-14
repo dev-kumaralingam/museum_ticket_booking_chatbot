@@ -1,266 +1,311 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const chatMessages = document.getElementById('chat-messages');
-    const userInput = document.getElementById('user-message');
-    const sendButton = document.getElementById('send-button');
-    const museumSelection = document.getElementById('museum-selection');
-    const museumButtons = document.getElementById('museum-buttons');
-    const timeslotSelection = document.getElementById('timeslot-selection');
-    const timeslotButtons = document.getElementById('timeslot-buttons');
-    const dateSelection = document.getElementById('date-selection');
-    const datePicker = document.getElementById('date-picker');
-    const ticketSelection = document.getElementById('ticket-selection');
-    const ticketOptions = document.getElementById('ticket-options');
-    const totalTickets = document.getElementById('total-tickets');
-    const totalCost = document.getElementById('total-cost');
-    const confirmTickets = document.getElementById('confirm-tickets');
-    const emailInput = document.getElementById('email-input');
-    const userEmail = document.getElementById('user-email');
-    const submitEmail = document.getElementById('submit-email');
-    const paymentQR = document.getElementById('payment-qr');
-    const qrCode = document.getElementById('qr-code');
-    const confirmPayment = document.getElementById('confirm-payment');
+let chatState = 'welcome';
+let bookingData = {};
 
-    let currentState = 'welcome';
-    let selectedMuseum = '';
-    let selectedTimeSlot = '';
-    let selectedDate = '';
-    let tickets = { child: 0, student: 0, adult: 0 };
-    const ticketPrices = { child: 50, student: 100, adult: 200 };
-    const museums = ["National Museum, New Delhi", "Indian Museum, Kolkata", "Salar Jung Museum, Hyderabad"];
-    const timeSlots = ["10:00 AM - 12:00 PM", "12:00 PM - 2:00 PM", "2:00 PM - 4:00 PM", "4:00 PM - 6:00 PM"];
+const chatMessages = document.getElementById('chat-messages');
+const userInput = document.getElementById('user-input');
+const sendButton = document.getElementById('send-button');
 
-    sendMessage('start');
-
-    sendButton.addEventListener('click', () => {
-        const message = userInput.value.trim();
-        if (message) {
-            addMessage(message, 'user');
-            sendMessage(message);
-            userInput.value = '';
-        }
-    });
-
-    userInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            sendButton.click();
-        }
-    });
-
-    function sendMessage(message) {
-        fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message, state: currentState }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            addMessage(data.response, 'bot');
-            currentState = data.state;
-            handleState(data.state, data.response);
-        });
+sendButton.addEventListener('click', sendMessage);
+userInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
     }
-
-    function addMessage(message, sender) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('message', `${sender}-message`);
-        messageElement.textContent = message;
-        chatMessages.appendChild(messageElement);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function handleState(state, response) {
-        switch (state) {
-            case 'choose_museum':
-                showMuseumSelection();
-                break;
-            case 'choose_time_slot':
-                showTimeslotSelection();
-                break;
-            case 'choose_date':
-                showDateSelection();
-                break;
-            case 'choose_tickets':
-                showTicketSelection();
-                break;
-            case 'get_email':
-                showEmailInput();
-                break;
-            case 'process_payment':
-                showPaymentQR();
-                break;
-            case 'booking_confirmed':
-                hideAllSelections();
-                resetBooking();
-                break;
-        }
-    }
-
-    function showMuseumSelection() {
-        hideAllSelections();
-        museumSelection.style.display = 'block';
-        museumButtons.innerHTML = '';
-        museums.forEach(museum => {
-            const button = document.createElement('button');
-            button.textContent = museum;
-            button.addEventListener('click', () => {
-                selectedMuseum = museum;
-                sendMessage(`Selected museum: ${museum}`);
-            });
-            museumButtons.appendChild(button);
-        });
-    }
-
-    function showTimeslotSelection() {
-        hideAllSelections();
-        timeslotSelection.style.display = 'block';
-        timeslotButtons.innerHTML = '';
-        timeSlots.forEach(slot => {
-            const button = document.createElement('button');
-            button.textContent = slot;
-            button.addEventListener('click', () => {
-                selectedTimeSlot = slot;
-                sendMessage(`Selected time slot: ${slot}`);
-            });
-            timeslotButtons.appendChild(button);
-        });
-    }
-
-    function showDateSelection() {
-        hideAllSelections();
-        dateSelection.style.display = 'block';
-        flatpickr(datePicker, {
-            minDate: "today",
-            maxDate: new Date().fp_incr(30), // Allow booking up to 30 days in advance
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr) {
-                selectedDate = dateStr;
-                sendMessage(`Selected date: ${selectedDate}`);
-            }
-        });
-    }
-
-    function showTicketSelection() {
-        hideAllSelections();
-        ticketSelection.style.display = 'block';
-        ticketOptions.innerHTML = '';
-        for (const [category, price] of Object.entries(ticketPrices)) {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${category.charAt(0).toUpperCase() + category.slice(1)}: ₹${price}</span>
-                <div class="ticket-controls">
-                    <button class="decrease">-</button>
-                    <input type="number" min="0" value="${tickets[category]}" data-category="${category}">
-                    <button class="increase">+</button>
-                </div>
-            `;
-            ticketOptions.appendChild(li);
-        }
-        updateTotalCost();
-    }
-
-    function showEmailInput() {
-        hideAllSelections();
-        emailInput.style.display = 'block';
-    }
-
-    function showPaymentQR() {
-        hideAllSelections();
-        paymentQR.style.display = 'block';
-        // In a real application, you would generate a unique QR code for each transaction
-        qrCode.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=DummyPaymentData';
-    }
-
-    function hideAllSelections() {
-        museumSelection.style.display = 'none';
-        timeslotSelection.style.display = 'none';
-        dateSelection.style.display = 'none';
-        ticketSelection.style.display = 'none';
-        emailInput.style.display = 'none';
-        paymentQR.style.display = 'none';
-    }
-
-    ticketOptions.addEventListener('click', (e) => {
-        if (e.target.classList.contains('decrease') || e.target.classList.contains('increase')) {
-            const input = e.target.parentElement.querySelector('input');
-            const category = input.dataset.category;
-            if (e.target.classList.contains('decrease') && tickets[category] > 0) {
-                tickets[category]--;
-            } else if (e.target.classList.contains('increase')) {
-                tickets[category]++;
-            }
-            input.value = tickets[category];
-            updateTotalCost();
-        }
-    });
-
-    ticketOptions.addEventListener('input', (e) => {
-        if (e.target.tagName === 'INPUT') {
-            const category = e.target.dataset.category;
-            const value = parseInt(e.target.value) || 0;
-            if (value >= 0) {
-                tickets[category] = value;
-                updateTotalCost();
-            } else {
-                e.target.value = tickets[category];
-            }
-        }
-    });
-
-    function updateTotalCost() {
-        const total = Object.entries(tickets).reduce((sum, [category, quantity]) => {
-            return sum + (quantity * ticketPrices[category]);
-        }, 0);
-        const totalTicketCount = Object.values(tickets).reduce((sum, quantity) => sum + quantity, 0);
-        totalTickets.textContent = totalTicketCount;
-        totalCost.textContent = `₹${total}`;
-    }
-
-    confirmTickets.addEventListener('click', () => {
-        const ticketSummary = Object.entries(tickets)
-            .map(([category, quantity]) => `${category}: ${quantity}`)
-            .join(', ');
-        sendMessage(`Confirm tickets: ${ticketSummary}`);
-    });
-
-    submitEmail.addEventListener('click', () => {
-        const email = userEmail.value.trim();
-        if (validateEmail(email)) {
-            sendMessage(`Email: ${email}`);
-        } else {
-            addMessage("Please enter a valid email address (e.g., example@gmail.com)", 'bot');
-        }
-    });
-
-    confirmPayment.addEventListener('click', () => {
-        sendMessage("Payment confirmed");
-    });
-
-    function validateEmail(email) {
-        const re = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-        return re.test(String(email).toLowerCase());
-    }
-
-    function resetBooking() {
-        currentState = 'welcome';
-        selectedMuseum = '';
-        selectedTimeSlot = '';
-        selectedDate = '';
-        tickets = { child: 0, student: 0, adult: 0 };
-    }
-
-    // Handle navigation to previous steps
-    userInput.addEventListener('input', (e) => {
-        const message = e.target.value.toLowerCase();
-        if (message.includes('go to ticket booking') || message.includes('ticket registration')) {
-            sendMessage('go to ticket_booking');
-        } else if (message.includes('go to time slot')) {
-            sendMessage('go to time_slot');
-        } else if (message.includes('go to date selection')) {
-            sendMessage('go to date_selection');
-        } else if (message.includes('go to ticket selection')) {
-            sendMessage('go to ticket_selection');
-        }
-    });
 });
+
+function sendMessage() {
+    const message = userInput.value.trim();
+    if (message) {
+        addMessageToChatWindow('user', message);
+        processUserInput(message);
+        userInput.value = '';
+    }
+}
+
+function addMessageToChatWindow(sender, message, options = null) {
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message', `${sender}-message`);
+    messageElement.textContent = message;
+
+    if (options) {
+        const optionsContainer = document.createElement('div');
+        optionsContainer.classList.add('options-container');
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.classList.add('option-button');
+            button.textContent = option;
+            button.addEventListener('click', () => processUserInput(option));
+            optionsContainer.appendChild(button);
+        });
+        messageElement.appendChild(optionsContainer);
+    }
+
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function processUserInput(message) {
+    if (message.toLowerCase() === 'go to ticket booking' || message.toLowerCase() === 'ticket registration') {
+        chatState = 'welcome';
+        bookingData = {};
+    }
+
+    switch (chatState) {
+        case 'welcome':
+            welcomeMessage();
+            break;
+        case 'museum_selection':
+            selectMuseum(message);
+            break;
+        case 'time_slot_selection':
+            selectTimeSlot(message);
+            break;
+        case 'date_selection':
+            selectDate(message);
+            break;
+        case 'ticket_selection':
+            selectTickets(message);
+            break;
+        case 'email_input':
+            processEmail(message);
+            break;
+        case 'payment':
+            processPayment(message);
+            break;
+    }
+}
+
+function welcomeMessage() {
+    const museums = ['National Museum, New Delhi', 'Indian Museum, Kolkata', 'Salar Jung Museum, Hyderabad'];
+    addMessageToChatWindow('bot', "Welcome to the Museum Ticket Booking Chatbot! Please select a museum:", museums);
+    chatState = 'museum_selection';
+}
+
+function selectMuseum(museum) {
+    const museums = ['National Museum, New Delhi', 'Indian Museum, Kolkata', 'Salar Jung Museum, Hyderabad'];
+    if (museums.includes(museum)) {
+        bookingData.museum = museum;
+        const timeSlots = ['10:00 AM - 12:00 PM', '12:00 PM - 2:00 PM', '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM'];
+        addMessageToChatWindow('bot', `You've selected ${museum}. Please choose a time slot:`, timeSlots);
+        chatState = 'time_slot_selection';
+    } else {
+        addMessageToChatWindow('bot', "Invalid museum selection. Please try again.", museums);
+    }
+}
+
+function selectTimeSlot(timeSlot) {
+    const timeSlots = ['10:00 AM - 12:00 PM', '12:00 PM - 2:00 PM', '2:00 PM - 4:00 PM', '4:00 PM - 6:00 PM'];
+    if (timeSlots.includes(timeSlot)) {
+        bookingData.timeSlot = timeSlot;
+        addMessageToChatWindow('bot', "Please select a date:");
+        initDatePicker();
+        chatState = 'date_selection';
+    } else {
+        addMessageToChatWindow('bot', "Invalid time slot. Please try again.", timeSlots);
+    }
+}
+
+function initDatePicker() {
+    const datePickerInput = document.createElement('input');
+    datePickerInput.type = 'text';
+    datePickerInput.id = 'date-picker';
+    chatMessages.appendChild(datePickerInput);
+
+    flatpickr("#date-picker", {
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        onChange: function(selectedDates, dateStr) {
+            selectDate(dateStr);
+        }
+    });
+}
+
+function selectDate(date) {
+    if (isValidDate(date)) {
+        bookingData.date = date;
+        showTicketSelection();
+    } else {
+        addMessageToChatWindow('bot', "Invalid date format. Please use YYYY-MM-DD.");
+    }
+}
+
+function isValidDate(dateString) {
+    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!regex.test(dateString)) return false;
+    const date = new Date(dateString);
+    return date instanceof Date && !isNaN(date) && date >= new Date();
+}
+
+function showTicketSelection() {
+    const ticketCategories = [
+        { name: 'Child', price: 50 },
+        { name: 'Student', price: 100 },
+        { name: 'Adult', price: 200 }
+    ];
+
+    let message = "Please select the number of tickets for each category:";
+    ticketCategories.forEach(category => {
+        message += `\n${category.name}: ₹${category.price}`;
+    });
+
+    addMessageToChatWindow('bot', message);
+
+    const ticketSelectionContainer = document.createElement('div');
+    ticketSelectionContainer.id = 'ticket-selection';
+
+    ticketCategories.forEach(category => {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.classList.add('ticket-category');
+        categoryDiv.innerHTML = `
+            <span>${category.name}</span>
+            <div class="ticket-controls">
+                <button class="decrement-btn" data-category="${category.name}">-</button>
+                <input type="number" class="ticket-input" data-category="${category.name}" value="0" min="0">
+                <button class="increment-btn" data-category="${category.name}">+</button>
+            </div>
+        `;
+        ticketSelectionContainer.appendChild(categoryDiv);
+    });
+
+    const totalCostDiv = document.createElement('div');
+    totalCostDiv.id = 'total-cost';
+    totalCostDiv.textContent = 'Total Cost: ₹0';
+    ticketSelectionContainer.appendChild(totalCostDiv);
+
+    const confirmButton = document.createElement('button');
+    confirmButton.textContent = 'Confirm Selection';
+    confirmButton.addEventListener('click', confirmTicketSelection);
+    ticketSelectionContainer.appendChild(confirmButton);
+
+    chatMessages.appendChild(ticketSelectionContainer);
+
+    // Add event listeners for ticket selection
+    document.querySelectorAll('.increment-btn, .decrement-btn').forEach(button => {
+        button.addEventListener('click', updateTicketCount);
+    });
+
+    document.querySelectorAll('.ticket-input').forEach(input => {
+        input.addEventListener('input', updateTotalCost);
+    });
+
+    chatState = 'ticket_selection';
+}
+
+function updateTicketCount(event) {
+    const category = event.target.dataset.category;
+    const input = document.querySelector(`.ticket-input[data-category="${category}"]`);
+    let count = parseInt(input.value);
+
+    if (event.target.classList.contains('increment-btn')) {
+        count++;
+    } else if (event.target.classList.contains('decrement-btn')) {
+        count = Math.max(0, count - 1);
+    }
+
+    input.value = count;
+    updateTotalCost();
+}
+
+function updateTotalCost() {
+    const ticketPrices = { Child: 50, Student: 100, Adult: 200 };
+    let totalCost = 0;
+
+    document.querySelectorAll('.ticket-input').forEach(input => {
+        const category = input.dataset.category;
+        const count = parseInt(input.value) || 0;
+        totalCost += count * ticketPrices[category];
+    });
+
+    document.getElementById('total-cost').textContent = `Total Cost: ₹${totalCost}`;
+}
+
+function confirmTicketSelection() {
+    const ticketCounts = {};
+    let totalTickets = 0;
+
+    document.querySelectorAll('.ticket-input').forEach(input => {
+        const category = input.dataset.category;
+        const count = parseInt(input.value) || 0;
+        ticketCounts[category] = count;
+        totalTickets += count;
+    });
+
+    if (totalTickets === 0) {
+        addMessageToChatWindow('bot', "Please select at least one ticket.");
+        return;
+    }
+
+    bookingData.tickets = ticketCounts;
+    bookingData.totalCost = parseInt(document.getElementById('total-cost').textContent.split('₹')[1]);
+
+    addMessageToChatWindow('bot', "Please enter your email address:");
+    chatState = 'email_input';
+}
+
+function processEmail(email) {
+    if (isValidEmail(email)) {
+        bookingData.email = email;
+        showQRCode();
+    } else {
+        addMessageToChatWindow('bot', "Invalid email address. Please try again.");
+    }
+}
+
+function isValidEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+}
+
+function showQRCode() {
+    addMessageToChatWindow('bot', "Please scan the QR code to complete the payment:");
+    const qrCode = document.createElement('img');
+    qrCode.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=FakePaymentQRCode";
+    qrCode.alt = "Payment QR Code";
+    qrCode.id = "qr-code";
+    chatMessages.appendChild(qrCode);
+
+    addMessageToChatWindow('bot', "After completing the payment, please type 'done'.");
+    chatState = 'payment';
+}
+
+function processPayment(message) {
+    if (message.toLowerCase() === 'done') {
+        const ticketId = generateTicketId();
+        bookingData.ticketId = ticketId;
+
+        let confirmationMessage = `Booking successful! Your ticket ID is ${ticketId}. Details have been sent to your email.\n\n`;
+        confirmationMessage += `Museum: ${bookingData.museum}\n`;
+        confirmationMessage += `Date: ${bookingData.date}\n`;
+        confirmationMessage += `Time: ${bookingData.timeSlot}\n`;
+        confirmationMessage += `Tickets:\n`;
+        for (const [category, count] of Object.entries(bookingData.tickets)) {
+            if (count > 0) {
+                confirmationMessage += `  ${category}: ${count}\n`;
+            }
+        }
+        confirmationMessage += `Total Cost: ₹${bookingData.totalCost}`;
+
+        addMessageToChatWindow('bot', confirmationMessage);
+
+        // Here you would typically send the booking data to the server
+        // For this example, we'll just log it to the console
+        console.log('Booking data:', bookingData);
+
+        // Reset the chat state and booking data
+        chatState = 'welcome';
+        bookingData = {};
+
+        // Offer to start a new booking
+        setTimeout(() => {
+            addMessageToChatWindow('bot', "Would you like to make another booking?", ['Yes', 'No']);
+        }, 2000);
+    } else {
+        addMessageToChatWindow('bot', "Please complete the payment and type 'done' when finished.");
+    }
+}
+
+function generateTicketId() {
+    return 'TKT' + Math.random().toString(36).substr(2, 9).toUpperCase();
+}
+
+// Initialize the chatbot
+welcomeMessage();

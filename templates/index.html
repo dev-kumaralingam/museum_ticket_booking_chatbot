@@ -4,47 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Museum Ticket Booking Chatbot</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-    <div id="chat-container">
+    <div id="chatbot-container">
         <div id="chat-messages"></div>
-        <div id="user-input">
-            <input type="text" id="user-message" placeholder="Type your message...">
+        <div id="user-input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
             <button id="send-button">Send</button>
         </div>
     </div>
-    <div id="museum-selection" style="display: none;">
-        <h3>Select a Museum:</h3>
-        <div id="museum-buttons"></div>
-    </div>
-    <div id="timeslot-selection" style="display: none;">
-        <h3>Select a Time Slot:</h3>
-        <div id="timeslot-buttons"></div>
-    </div>
-    <div id="date-selection" style="display: none;">
-        <h3>Select a Date:</h3>
-        <input type="text" id="date-picker" placeholder="Select a date">
-    </div>
-    <div id="ticket-selection" style="display: none;">
-        <h3>Select Tickets:</h3>
-        <ul id="ticket-options"></ul>
-        <p>Total Tickets: <span id="total-tickets">0</span></p>
-        <p>Total Cost: <span id="total-cost">₹0</span></p>
-        <button id="confirm-tickets">Confirm Tickets</button>
-    </div>
-    <div id="email-input" style="display: none;">
-        <h3>Enter your email:</h3>
-        <input type="email" id="user-email" placeholder="your.email@gmail.com">
-        <button id="submit-email">Submit</button>
-    </div>
-    <div id="payment-qr" style="display: none;">
-        <h3>Scan QR Code to Pay:</h3>
-        <img id="qr-code" src="" alt="QR Code for payment">
-        <button id="confirm-payment">Confirm Payment</button>
-    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
-    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script src="/static/js/chatbot.js"></script>
 </body>
 </html>

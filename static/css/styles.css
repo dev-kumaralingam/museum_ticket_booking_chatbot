@@ -1,23 +1,20 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    margin: 0;
     background-color: #f0f0f0;
 }
 
-#chat-container {
-    width: 100%;
-    max-width: 600px;
-    height: 100vh;
+#chatbot-container {
+    width: 400px;
+    height: 600px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
     display: flex;
     flex-direction: column;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    overflow: hidden;
     background-color: white;
 }
 
@@ -27,26 +24,25 @@ body {
     padding: 20px;
 }
 
-#user-input {
+#user-input-container {
     display: flex;
     padding: 10px;
-    border-top: 1px solid #ccc;
 }
 
-#user-message {
+#user-input {
     flex-grow: 1;
-    padding: 5px;
+    padding: 10px;
     border: 1px solid #ccc;
-    border-radius: 3px;
+    border-radius: 5px;
 }
 
 #send-button {
-    padding: 5px 10px;
-    margin-left: 10px;
-    background-color: #4CAF50;
+    padding: 10px 20px;
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
+    margin-left: 10px;
     cursor: pointer;
 }
 
@@ -57,46 +53,31 @@ body {
 }
 
 .user-message {
-    background-color: #e6f2ff;
-    text-align: right;
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
 }
 
 .bot-message {
-    background-color: #f0f0f0;
+    background-color: #f1f1f1;
 }
 
-#museum-selection, #timeslot-selection, #date-selection, #ticket-selection, #email-input, #payment-qr {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-#museum-buttons, #timeslot-buttons {
+.options-container {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    margin-top: 10px;
 }
 
-#museum-buttons button, #timeslot-buttons button {
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
+.option-button {
+    padding: 5px 10px;
+    background-color: #e0e0e0;
     border: none;
-    border-radius: 3px;
+    border-radius: 5px;
     cursor: pointer;
 }
 
-#ticket-options {
-    list-style-type: none;
-    padding: 0;
-}
-
-#ticket-options li {
+.ticket-category {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -108,37 +89,28 @@ body {
     align-items: center;
 }
 
-.ticket-controls button {
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-}
-
-.ticket-controls input {
+.ticket-input {
     width: 40px;
     text-align: center;
     margin: 0 5px;
 }
 
-#confirm-tickets, #submit-email, #confirm-payment {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: #4CAF50;
+.increment-btn, .decrement-btn {
+    padding: 2px 8px;
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 3px;
     cursor: pointer;
-    margin-top: 10px;
 }
 
 #qr-code {
-    display: block;
-    margin: 20px auto;
     max-width: 200px;
+    margin-top: 10px;
+}
+
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
 }
